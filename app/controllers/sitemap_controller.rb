@@ -9,19 +9,61 @@ class SitemapController < Spree::BaseController
     end
   end
 
+  def taxon_and_subtaxons(taxon)
+    taxon_attributes = taxon.attributes.except(:vectors)
+    taxon_attributes[:permalink] = "/t/"+taxon_attributes[:permalink]
+    [taxon_attributes, taxon.children.map{|t| taxon_and_subtaxons(t)} ]
+  end
+
+  def categories
+    @result = Taxonomy.all.map do |taxonomy|
+      taxon_and_subtaxons(taxonomy.root)
+    end
+
+    respond_to do |format|
+      format.html { }
+      format.text { render :layout => false, :text => YAML.dump(@result) }
+      format.yaml { render :layout => false, :text => YAML.dump(@result) }
+      format.json { render :layout => false, :text => JSON.dump(@result) }
+    end
+  end
+
+  def products
+    taxon_id = params[:category_id]
+    query    = params[:query]
+    limit    = params[:limit]
+
+    if taxon_id
+      @result = Product.available.taxons_id_in_tree(taxon_id).all(:limit => limit)
+    elsif query
+      @result = Product.available.scoped_by_tsearch(query).all(:limit => limit)
+    else
+      @result = Product.available.all(:limit => limit)
+    end
+    
+    @result.map!{|p| a = p.attributes.except(:vectors); a[:permalink] = "/products/"+a[:permalink]+"?small=true"; a}
+
+    respond_to do |format|
+      format.html { }
+      format.text { render :layout => false, :text => YAML.dump(@result) }
+      format.yaml { render :layout => false, :text => YAML.dump(@result) }
+      format.json { render :layout => false, :text => JSON.dump(@result) }
+    end
+  end
+
   # showing the sitemap of a specific taxon, to cut down on sitemap size
   def show
     config
     @taxon = Taxon.find_by_permalink(params[:id].join("/") + "/")
     
-    if @taxon.nil? 
+    if @taxon.nil?
       render :nothing => true, :status => "404 Not Found" and return
-    end 
+    end
 
     respond_to do |format|
       format.html { }
       format.xml  { render :layout => false, :template => 'sitemap/show.xml.erb' }
-      format.text { render :text => @taxon.products.map(&:name).join('\n') }		##? 
+      format.text { render :text => @taxon.products.map(&:name).join('\n') }		##?
     end
   end
 
@@ -35,13 +77,13 @@ class SitemapController < Spree::BaseController
   private
   def config
     # not using :site_url because localhost etc is more useful in dev mode
-    @public_dir = url_for( :controller => '/' ).sub(%r|/\s*$|, '') 
+    @public_dir = url_for( :controller => '/' ).sub(%r|/\s*$|, '')
 
     # only show a product once in the whole sitemap
     @allow_duplicates = false # TODO: config setting
 
     # default to this to avoid penalties for lack of changes
-    @change_freq = 'monthly' 
+    @change_freq = 'monthly'
   end
 
 
