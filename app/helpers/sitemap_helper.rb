@@ -5,7 +5,7 @@ module SitemapHelper
     products_to_list.each do |p|
       xml.url {
         p = Product.find(p)
-        xml.loc (@public_dir + product_path(p))
+        xml.loc(@public_dir + product_path(p))
         xml.lastmod p.updated_at.xmlschema                        #change timestamp of last modified
         xml.changefreq @change_freq
         xml.priority '0.8'
@@ -26,7 +26,7 @@ module SitemapHelper
 
   def add_sub_map xml,taxon
     xml.sitemap {
-      xml.loc (@public_dir + '/sitemap/' + taxon.permalink + 'sitemap.xml')
+      xml.loc(@public_dir + '/sitemap/' + taxon.permalink + 'sitemap.xml')
       xml.lastmod taxon.updated_at.xmlschema
     }
   end

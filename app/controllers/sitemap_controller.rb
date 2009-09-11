@@ -10,8 +10,9 @@ class SitemapController < Spree::BaseController
   end
 
   def taxon_and_subtaxons(taxon)
-    taxon_attributes = taxon.attributes.except(:vectors)
-    taxon_attributes[:permalink] = "/t/"+taxon_attributes[:permalink]
+    taxon_attributes = taxon.attributes
+    taxon_attributes.delete("vectors")
+    taxon_attributes["permalink"] = "/t/"+taxon_attributes["permalink"]
     [taxon_attributes, taxon.children.map{|t| taxon_and_subtaxons(t)} ]
   end
 
@@ -41,7 +42,12 @@ class SitemapController < Spree::BaseController
       @result = Product.available.all(:limit => limit)
     end
     
-    @result.map!{|p| a = p.attributes.except(:vectors); a[:permalink] = "/products/"+a[:permalink]+"?small=true"; a}
+    @result.map!{|p|
+      a = p.attributes;
+      a.delete("vectors");
+      a["permalink"] = "/products/"+a["permalink"]+"?small=true";
+      a
+    }
 
     respond_to do |format|
       format.html { }
