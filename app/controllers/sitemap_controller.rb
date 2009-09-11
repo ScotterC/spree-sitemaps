@@ -45,7 +45,20 @@ class SitemapController < Spree::BaseController
     @result.map!{|p|
       a = p.attributes;
       a.delete("vectors");
-      a["permalink"] = "/products/"+a["permalink"]+"?small=true";
+      a["permalink"] = "/products/"+a["permalink"];
+      if p.images.first
+        a["image_url"] = {}
+        {
+          :mini => '48x48>',
+          :small => '100x100>',
+          :product => '240x240>',
+          :large => '600x600>'
+        }.each_pair do |size, res|
+          a["image_url"][res.chop] =  p.images.first.attachment.url(size)
+        end
+      end
+      
+      a["price"] = p.price
       a
     }
 
