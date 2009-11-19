@@ -30,17 +30,21 @@ class SitemapController < Spree::BaseController
   end
 
   def products
-    taxon_id = params[:category_id]
+    taxon_ids = params[:category_ids] && params[:category_ids].split(",")
     query    = params[:query]
-    limit    = params[:limit]
+    limit    = params[:limit].to_i
+    order    = params[:order]
+    offset   = params[:offset].to_i
+    order = nil if order !~ /\w+ (asc|desc)/i
 
-    if taxon_id
-      @result = Product.available.taxons_id_in_tree(taxon_id).all(:limit => limit)
+    if taxon_ids &&
+      @result = Product.available.taxons_id_in_tree_any(taxon_ids)
     elsif query
-      @result = Product.available.scoped_by_tsearch(query).all(:limit => limit)
+      @result = Product.available.scoped_by_tsearch(query)
     else
-      @result = Product.available.all(:limit => limit)
+      @result = Product.available
     end
+    @result = @result.all(:limit => limit, :order => order, :offset => offset)
     
     @result.map!{|p|
       a = p.attributes;
