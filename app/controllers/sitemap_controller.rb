@@ -22,7 +22,7 @@ class SitemapController < Spree::BaseController
     end
 
     respond_to do |format|
-      format.html { }
+      format.html { render :layout => false, :text => "<html><body><pre>"+YAML.dump(@result)+"</pre></body></html>" }
       format.text { render :layout => false, :text => YAML.dump(@result) }
       format.yaml { render :layout => false, :text => YAML.dump(@result) }
       format.json { render :layout => false, :text => JSON.dump(@result) }
@@ -32,7 +32,8 @@ class SitemapController < Spree::BaseController
   def products
     taxon_ids = params[:category_ids] && params[:category_ids].split(",")
     query    = params[:query]
-    limit    = params[:limit].to_i
+    limit    = params[:limit]
+    limit    &&= limit.to_i
     order    = params[:order]
     offset   = params[:offset].to_i
     order = nil if order !~ /\w+ (asc|desc)/i
@@ -67,7 +68,7 @@ class SitemapController < Spree::BaseController
     }
 
     respond_to do |format|
-      format.html { }
+      format.html { render :layout => false, :text => "<html><body><pre>"+YAML.dump(@result)+"</pre></body></html>" }
       format.text { render :layout => false, :text => YAML.dump(@result) }
       format.yaml { render :layout => false, :text => YAML.dump(@result) }
       format.json { render :layout => false, :text => JSON.dump(@result) }
