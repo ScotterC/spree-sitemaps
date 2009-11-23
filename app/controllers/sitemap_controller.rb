@@ -61,7 +61,7 @@ class SitemapController < Spree::BaseController
           a["image_url"][res.chop] =  p.images.first.attachment.url(size)
         end
       end
-      
+      a['default_variant_id'] = p.default_variant.id
       a["price"] = p.price
       a
     }
